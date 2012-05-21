@@ -17,6 +17,8 @@ except ImportError:
 from redis.connection import UnixDomainSocketConnection, Connection
 from redis.connection import DefaultParser
 
+import logging
+log = logging.getLogger(__name__)
 
 class CacheKey(object):
     """
@@ -47,7 +49,9 @@ class CacheConnectionPool(object):
         password=None, parser_class=None,
         unix_socket_path=None):
         connection_identifier = (host, port, db, parser_class, unix_socket_path)
+        log.info('Connection pool requested...')
         if not self._connection_pools.get(connection_identifier):
+            log.info('Creating new connection pool...')
             connection_class = (
                 unix_socket_path and UnixDomainSocketConnection or Connection
             )
@@ -65,6 +69,7 @@ class CacheConnectionPool(object):
             else:
                 kwargs['path'] = unix_socket_path
             self._connection_pools[connection_identifier] = redis.ConnectionPool(**kwargs)
+            log.info('self._connection_pools = %s', self._connection_pools)
         return self._connection_pools[connection_identifier]
 pool = CacheConnectionPool()
 
